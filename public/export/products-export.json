@@ -1,0 +1,34 @@
+{
+  "products": [
+    {
+      "id": 1,
+      "name": "Túi Tái Sử Dụng Eco",
+      "price": 89000,
+      "image": "/reusable-eco-bag.jpg",
+      "description": "Túi vải bền vững, có thể tái sử dụng hàng trăm lần. Chất liệu 100% cotton hữu cơ.",
+      "category": "Túi xách",
+      "sku": "ECO-BAG-001",
+      "stock": 50
+    },
+    {
+      "id": 2,
+      "name": "Chai Nước Bamboo",
+      "price": 129000,
+      "image": "/bamboo-water-bottle.jpg",
+      "description": "Chai nước từ tre tự nhiên, không chứa BPA. Giữ nước lạnh đến 24 giờ.",
+      "category": "Đồ uống",
+      "sku": "ECO-BOTTLE-001",
+      "stock": 35
+    },
+    {
+      "id": 3,
+      "name": "Bộ Ăn Cơm Gỗ",
+      "price": 159000,
+      "image": "/wooden-cutlery-set.jpg",
+      "description": "Bộ đũa gỗ tự nhiên, thân thiện với môi trường. Bao gồm đũa, muỗng, nĩa.",
+      "category": "Bộ ăn",
+      "sku": "ECO-CUTLERY-001",
+      "stock": 40
+    }
+  ]
+}
