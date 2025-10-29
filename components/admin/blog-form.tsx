@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { useAdmin } from "@/lib/admin-context"
 import { uploadToImgbb } from "@/lib/imgbb-upload"
 import { Button } from "@/components/ui/button"
@@ -11,23 +11,8 @@ import { Card } from "@/components/ui/card"
 import { Calendar } from "@/components/ui/calendar"
 import { ImageWithFallback } from "@/components/ui/image-with-fallback"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import {
-  Bold,
-  Italic,
-  List,
-  Heading2,
-  X,
-  Code,
-  Link2,
-  Heading1,
-  Heading3,
-  ListOrdered,
-  Underline,
-  Strikethrough,
-  Quote,
-  Minus,
-  Star,
-} from "lucide-react"
+import TiptapEditor from "./tiptap-editor"
+import { X, Star } from "lucide-react"
 import { format } from "date-fns"
 import { vi } from "date-fns/locale"
 
@@ -121,46 +106,6 @@ export default function BlogForm({ editingId, onClose }: BlogFormProps) {
       const result = await uploadToImgbb(file)
       if (result.success && result.url) {
         setFormData({ ...formData, image: result.url })
-      } else {
-        alert(result.error || "Tải ảnh lên thất bại")
-      }
-    } catch (error) {
-      console.error("Upload failed:", error)
-      alert("Tải ảnh lên thất bại")
-    } finally {
-      setUploading(false)
-    }
-  }
-
-  const insertTag = (openTag: string, closeTag: string) => {
-    const textarea = document.getElementById("content") as HTMLTextAreaElement
-    if (!textarea) return
-
-    const start = textarea.selectionStart
-    const end = textarea.selectionEnd
-    const selectedText = formData.content.substring(start, end)
-    const newContent =
-      closeTag === ""
-        ? formData.content.substring(0, start) + openTag + formData.content.substring(end)
-        : formData.content.substring(0, start) + openTag + selectedText + closeTag + formData.content.substring(end)
-
-    setFormData({ ...formData, content: newContent })
-    setTimeout(() => {
-      textarea.focus()
-      textarea.setSelectionRange(start + openTag.length, start + openTag.length + selectedText.length)
-    }, 0)
-  }
-
-  const insertImage = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-
-    setUploading(true)
-    try {
-      const result = await uploadToImgbb(file)
-      if (result.success && result.url) {
-        const imgTag = `<img src="${result.url}" alt="Ảnh bài viết" style="max-width: 100%; height: auto; margin: 10px 0;" />`
-        setFormData({ ...formData, content: formData.content + "\n" + imgTag })
       } else {
         alert(result.error || "Tải ảnh lên thất bại")
       }
@@ -375,144 +320,33 @@ export default function BlogForm({ editingId, onClose }: BlogFormProps) {
 
         <div>
           <label className="block text-sm font-medium text-foreground mb-2">Nội dung bài viết</label>
-          <div className="border border-secondary/30 rounded-lg overflow-hidden">
-            <div className="bg-secondary/10 p-2 flex gap-1 flex-wrap border-b border-secondary/30">
-              <button
-                type="button"
-                onClick={() => insertTag("<h1>", "</h1>")}
-                className="p-2 hover:bg-secondary/20 rounded transition"
-                title="Heading 1"
-              >
-                <Heading1 size={18} />
-              </button>
-              <button
-                type="button"
-                onClick={() => insertTag("<h2>", "</h2>")}
-                className="p-2 hover:bg-secondary/20 rounded transition"
-                title="Heading 2"
-              >
-                <Heading2 size={18} />
-              </button>
-              <button
-                type="button"
-                onClick={() => insertTag("<h3>", "</h3>")}
-                className="p-2 hover:bg-secondary/20 rounded transition"
-                title="Heading 3"
-              >
-                <Heading3 size={18} />
-              </button>
-              <div className="w-px bg-secondary/30"></div>
-
-              <button
-                type="button"
-                onClick={() => insertTag("<strong>", "</strong>")}
-                className="p-2 hover:bg-secondary/20 rounded transition"
-                title="Bold"
-              >
-                <Bold size={18} />
-              </button>
-              <button
-                type="button"
-                onClick={() => insertTag("<em>", "</em>")}
-                className="p-2 hover:bg-secondary/20 rounded transition"
-                title="Italic"
-              >
-                <Italic size={18} />
-              </button>
-              <button
-                type="button"
-                onClick={() => insertTag("<u>", "</u>")}
-                className="p-2 hover:bg-secondary/20 rounded transition"
-                title="Underline"
-              >
-                <Underline size={18} />
-              </button>
-              <button
-                type="button"
-                onClick={() => insertTag("<s>", "</s>")}
-                className="p-2 hover:bg-secondary/20 rounded transition"
-                title="Strikethrough"
-              >
-                <Strikethrough size={18} />
-              </button>
-              <div className="w-px bg-secondary/30"></div>
-
-              <button
-                type="button"
-                onClick={() => insertTag("<ul><li>", "</li></ul>")}
-                className="p-2 hover:bg-secondary/20 rounded transition"
-                title="Unordered List"
-              >
-                <List size={18} />
-              </button>
-              <button
-                type="button"
-                onClick={() => insertTag("<ol><li>", "</li></ol>")}
-                className="p-2 hover:bg-secondary/20 rounded transition"
-                title="Ordered List"
-              >
-                <ListOrdered size={18} />
-              </button>
-              <button
-                type="button"
-                onClick={() => insertTag("<blockquote>", "</blockquote>")}
-                className="p-2 hover:bg-secondary/20 rounded transition"
-                title="Quote"
-              >
-                <Quote size={18} />
-              </button>
-              <button
-                type="button"
-                onClick={() => insertTag("<hr />", "")}
-                className="p-2 hover:bg-secondary/20 rounded transition"
-                title="Horizontal Line"
-              >
-                <Minus size={18} />
-              </button>
-              <div className="w-px bg-secondary/30"></div>
-
-              <button
-                type="button"
-                onClick={() => insertTag('<a href="">', "</a>")}
-                className="p-2 hover:bg-secondary/20 rounded transition"
-                title="Link"
-              >
-                <Link2 size={18} />
-              </button>
-              <button
-                type="button"
-                onClick={() => insertTag("<code>", "</code>")}
-                className="p-2 hover:bg-secondary/20 rounded transition"
-                title="Code"
-              >
-                <Code size={18} />
-              </button>
-              <div className="w-px bg-secondary/30"></div>
-              
-              <label className="p-2 hover:bg-secondary/20 rounded transition cursor-pointer" title="Chèn ảnh">
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={insertImage}
-                  className="hidden"
-                  disabled={uploading}
-                />
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
-                  <circle cx="8.5" cy="8.5" r="1.5"/>
-                  <polyline points="21 15 16 10 5 21"/>
-                </svg>
-              </label>
-            </div>
-            <Textarea
-              id="content"
-              value={formData.content}
-              onChange={(e) => setFormData({ ...formData, content: e.target.value })}
-              placeholder="Nhập nội dung bài viết"
-              required
-              rows={10}
-            />
-          </div>
+          <TiptapEditor
+            content={formData.content}
+            onChange={(html) => setFormData({ ...formData, content: html })}
+            onImageUpload={async () => {
+              const input = document.createElement('input')
+              input.type = 'file'
+              input.accept = 'image/*'
+              input.onchange = async (e: any) => {
+                const file = e.target?.files?.[0]
+                if (file) {
+                  setUploading(true)
+                  const result = await uploadToImgbb(file)
+                  setUploading(false)
+                  if (result.success && result.url) {
+                    // Insert image at the end of content
+                    setFormData({
+                      ...formData,
+                      content: formData.content + `<img src="${result.url}" alt="Uploaded image" />`
+                    })
+                  } else {
+                    alert('Lỗi upload ảnh: ' + (result.error || 'Unknown error'))
+                  }
+                }
+              }
+              input.click()
+            }}
+          />
         </div>
 
         {showPreview && (
