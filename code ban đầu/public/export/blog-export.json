@@ -1,0 +1,22 @@
+{
+  "posts": [
+    {
+      "id": 1,
+      "title": "Tại sao bền vững lại quan trọng",
+      "excerpt": "Khám phá tác động của các sản phẩm bền vững đối với môi trường và sức khỏe",
+      "content": "<h2>Tại sao bền vững lại quan trọng</h2><p>Bền vững không chỉ là một từ khóa, mà là một cách sống. Khi chúng ta chọn các sản phẩm bền vững, chúng ta đang đầu tư vào tương lai của hành tinh.</p>",
+      "image": "/sustainable-living.jpg",
+      "category": "Bền vững",
+      "date": "15 Tháng 10, 2024"
+    },
+    {
+      "id": 2,
+      "title": "Cách sống xanh hơn mỗi ngày",
+      "excerpt": "Những mẹo đơn giản để giảm lượng rác thải và bảo vệ hành tinh",
+      "content": "<h2>Cách sống xanh hơn</h2><p>Có nhiều cách đơn giản để bắt đầu cuộc sống xanh hơn. Từ việc sử dụng túi tái sử dụng đến việc chọn các sản phẩm không chứa hóa chất độc hại.</p>",
+      "image": "/green-living-tips.jpg",
+      "category": "Cuộc sống xanh",
+      "date": "12 Tháng 10, 2024"
+    }
+  ]
+}
