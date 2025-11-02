@@ -6,7 +6,8 @@ import Header from "@/components/header"
 import Footer from "@/components/footer"
 import Link from "next/link"
 import { CheckCircle, Copy } from "lucide-react"
-import { generateQRCode } from "@/lib/qr-code-generator"
+import { generateVietQRCode } from "@/lib/qr-code-generator"
+import { getVietQRBankId } from "@/lib/bank-config-utils"
 
 export default function PaymentConfirmationPage() {
   const searchParams = useSearchParams()
@@ -15,11 +16,13 @@ export default function PaymentConfirmationPage() {
   const method = searchParams.get("method")
   const [isUpdating, setIsUpdating] = useState(true)
   const [qrCode, setQrCode] = useState<string>("")
+  const [orderAmount, setOrderAmount] = useState<number>(0)
   const [bankDetails, setBankDetails] = useState({
-    bankName: "Ngân hàng Vietcombank",
-    accountName: "EcoGood Coffee",
-    accountNumber: "1234567890",
-    branch: "Chi nhánh Hà Nội",
+    bankName: "Ngân hàng MBBank",
+    bankId: "MB",
+    accountName: "EcoGood",
+    accountNumber: "1088656788888",
+    branch: "Chi nhánh TP.HCM",
   })
 
   useEffect(() => {
@@ -28,12 +31,31 @@ export default function PaymentConfirmationPage() {
         const response = await fetch("/api/bank-transfer/config")
         const data = await response.json()
         if (data.success && data.bankConfig) {
-          setBankDetails(data.bankConfig)
-          if (method === "bank_transfer") {
-            const qr = await generateQRCode(
-              `${data.bankConfig.accountNumber}|${data.bankConfig.accountName}|${orderId}`,
-            )
-            setQrCode(qr)
+          // Lấy bankId từ mapping nếu chưa có
+          let bankId = data.bankConfig.bankId
+          if (!bankId && data.bankConfig.bankName) {
+            const bankInfo = getVietQRBankId(data.bankConfig.bankName)
+            if (bankInfo) {
+              bankId = bankInfo.bankId
+            }
+          }
+          
+          setBankDetails({
+            ...data.bankConfig,
+            bankId: bankId || "MB",
+          })
+          
+          // Lấy thông tin đơn hàng để có số tiền
+          if (orderId && method === "bank_transfer") {
+            try {
+              const orderResponse = await fetch(`/api/orders/${orderId}`)
+              const orderData = await orderResponse.json()
+              if (orderData.success && orderData.order) {
+                setOrderAmount(orderData.order.totalAmount || 0)
+              }
+            } catch (error) {
+              console.error("[v0] Failed to fetch order:", error)
+            }
           }
         }
       } catch (error) {
@@ -43,6 +65,23 @@ export default function PaymentConfirmationPage() {
 
     fetchBankConfig()
   }, [method, orderId])
+
+  // Tạo VietQR khi có đầy đủ thông tin
+  useEffect(() => {
+    if (method === "bank_transfer" && bankDetails.bankId && bankDetails.accountNumber && bankDetails.accountName) {
+      const addInfo = orderId ? `Ma don hang ${orderId}` : ""
+      
+      const qr = generateVietQRCode({
+        bankId: bankDetails.bankId,
+        accountNumber: bankDetails.accountNumber,
+        accountName: bankDetails.accountName,
+        amount: orderAmount > 0 ? orderAmount : undefined,
+        addInfo: addInfo || undefined,
+        template: "compact",
+      })
+      setQrCode(qr)
+    }
+  }, [method, bankDetails, orderAmount, orderId])
 
   useEffect(() => {
     const updateOrderPaymentStatus = async () => {

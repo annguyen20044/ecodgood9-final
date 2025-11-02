@@ -4,11 +4,15 @@ export const ProductSchema = z.object({
   id: z.number().optional(),
   name: z.string().min(1, "Tên sản phẩm không được để trống"),
   price: z.number().min(0, "Giá phải lớn hơn 0"),
-  image: z.string().min(1, "Ảnh không được để trống"),
+  image: z.string().optional(), // Giữ lại để tương thích ngược
+  images: z.array(z.string()).min(1, "Phải có ít nhất một ảnh").optional(),
   description: z.string().min(1, "Mô tả không được để trống"),
   category: z.string().min(1, "Danh mục không được để trống"),
   sku: z.string().min(1, "SKU không được để trống"),
   stock: z.number().min(0, "Kho hàng không được âm"),
+}).refine((data) => data.images && data.images.length > 0 || data.image, {
+  message: "Phải có ít nhất một ảnh",
+  path: ["images"]
 })
 
 export const BlogPostSchema = z.object({

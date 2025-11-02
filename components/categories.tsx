@@ -2,38 +2,53 @@
 
 import { Leaf, Droplet, Utensils, Home } from "lucide-react"
 import Link from "next/link"
+import { useAdmin } from "@/lib/admin-context"
+
+// Mapping giữa category slug và category name (phải khớp với products/page.tsx)
+const categoryMap: Record<string, { name: string; slug: string; icon: typeof Leaf; description: string; color: string }> = {
+  bags: {
+    name: "Túi & Bao bì",
+    slug: "bags",
+    icon: Leaf,
+    description: "Túi tái sử dụng, bao bì phân hủy",
+    color: "bg-green-100 text-green-600"
+  },
+  bottles: {
+    name: "Chai & Ly",
+    slug: "bottles",
+    icon: Droplet,
+    description: "Bình nước, ly giữ nhiệt eco",
+    color: "bg-blue-100 text-blue-600"
+  },
+  kitchen: {
+    name: "Đồ gia dụng",
+    slug: "kitchen",
+    icon: Utensils,
+    description: "Đồ dùng nhà bếp bền vững",
+    color: "bg-yellow-100 text-yellow-600"
+  },
+  personal: {
+    name: "Chăm sóc cá nhân",
+    slug: "personal",
+    icon: Home,
+    description: "Sản phẩm vệ sinh tự nhiên",
+    color: "bg-pink-100 text-pink-600"
+  }
+}
 
 export default function Categories() {
-  const categories = [
-    {
-      icon: Leaf,
-      name: "Túi & Bao bì",
-      description: "Túi tái sử dụng, bao bì phân hủy",
-      color: "bg-green-100 text-green-600",
-      href: "/products?category=bags"
-    },
-    {
-      icon: Droplet,
-      name: "Chai & Ly",
-      description: "Bình nước, ly giữ nhiệt eco",
-      color: "bg-blue-100 text-blue-600",
-      href: "/products?category=bottles"
-    },
-    {
-      icon: Utensils,
-      name: "Đồ gia dụng",
-      description: "Đồ dùng nhà bếp bền vững",
-      color: "bg-yellow-100 text-yellow-600",
-      href: "/products?category=kitchen"
-    },
-    {
-      icon: Home,
-      name: "Chăm sóc cá nhân",
-      description: "Sản phẩm vệ sinh tự nhiên",
-      color: "bg-pink-100 text-pink-600",
-      href: "/products?category=personal"
-    }
-  ]
+  const { products } = useAdmin()
+  
+  // Lấy số lượng sản phẩm cho mỗi category
+  const getProductCount = (categoryName: string) => {
+    return products.filter(p => p.category === categoryName).length
+  }
+  
+  const categories = Object.values(categoryMap).map(cat => ({
+    ...cat,
+    productCount: getProductCount(cat.name),
+    href: `/products?category=${cat.slug}`
+  }))
 
   return (
     <section className="py-20 bg-gradient-to-b from-background to-primary/5">
@@ -51,7 +66,7 @@ export default function Categories() {
           {categories.map((category) => {
             const Icon = category.icon
             return (
-              <Link key={category.name} href={category.href}>
+              <Link key={category.slug} href={category.href}>
                 <div className="group bg-white rounded-2xl p-8 shadow-lg hover:shadow-2xl transition-all duration-300 cursor-pointer hover:-translate-y-2 border border-secondary/10 hover:border-secondary/30">
                   <div className={`${category.color} w-16 h-16 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform`}>
                     <Icon size={32} />
@@ -59,8 +74,11 @@ export default function Categories() {
                   <h3 className="text-xl font-bold text-primary mb-2 group-hover:text-secondary transition-colors">
                     {category.name}
                   </h3>
-                  <p className="text-foreground/70 text-sm">
+                  <p className="text-foreground/70 text-sm mb-2">
                     {category.description}
+                  </p>
+                  <p className="text-xs text-primary/60 font-medium">
+                    {category.productCount} sản phẩm
                   </p>
                 </div>
               </Link>

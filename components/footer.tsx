@@ -1,13 +1,31 @@
 "use client"
 
-import { Mail, Phone, MapPin, Facebook, Instagram, Leaf } from "lucide-react"
+import { Mail, Phone, MapPin, Facebook, Instagram, Leaf, MessageCircle } from "lucide-react"
 import { useAdmin } from "@/lib/admin-context"
 import { ImageWithFallback } from "@/components/ui/image-with-fallback"
 
+// Mapping giữa category name và category slug (phải khớp với categories.tsx)
+const categoryNameToSlug: Record<string, string> = {
+  "Túi & Bao bì": "bags",
+  "Chai & Ly": "bottles",
+  "Đồ gia dụng": "kitchen",
+  "Chăm sóc cá nhân": "personal"
+}
+
 export default function Footer() {
-  const { media } = useAdmin()
+  const { media, products } = useAdmin()
 
   const logoMedia = media.find((m) => m.category === "logo")
+  
+  // Lấy danh sách danh mục thực tế từ sản phẩm
+  const allCategories = Array.from(new Set(products.map(p => p.category)))
+    .filter(cat => cat && cat.trim() !== "")
+  
+  // Sắp xếp theo thứ tự định sẵn trong categoryNameToSlug (danh mục chính)
+  const orderedCategories = Object.keys(categoryNameToSlug)
+    .filter(cat => allCategories.includes(cat))
+    .concat(allCategories.filter(cat => !Object.keys(categoryNameToSlug).includes(cat)))
+    .slice(0, 4) // Giới hạn 4 danh mục
 
   return (
     <footer id="contact" className="bg-primary text-primary-foreground py-12 md:py-16">
@@ -58,21 +76,19 @@ export default function Footer() {
                     Tất cả sản phẩm
                   </a>
                 </li>
-                <li>
-                  <a href="/products" className="hover:text-secondary transition-colors duration-200 hover:translate-x-1 inline-block">
-                    Túi tái sử dụng
-                  </a>
-                </li>
-                <li>
-                  <a href="/products" className="hover:text-secondary transition-colors duration-200 hover:translate-x-1 inline-block">
-                    Chai nước Bamboo
-                  </a>
-                </li>
-                <li>
-                  <a href="/products" className="hover:text-secondary transition-colors duration-200 hover:translate-x-1 inline-block">
-                    Sản phẩm tự nhiên
-                  </a>
-                </li>
+                {orderedCategories.map((category) => {
+                  const slug = categoryNameToSlug[category] || category.toLowerCase().replace(/\s+/g, '-')
+                  return (
+                    <li key={category}>
+                      <a 
+                        href={`/products?category=${slug}`}
+                        className="hover:text-secondary transition-colors duration-200 hover:translate-x-1 inline-block"
+                      >
+                        {category}
+                      </a>
+                    </li>
+                  )
+                })}
               </ul>
             </div>
 
@@ -107,6 +123,12 @@ export default function Footer() {
             <div>
               <h4 className="font-bold mb-4 text-secondary text-base">Liên hệ</h4>
               <div className="space-y-3 text-sm">
+                <a href="/contact" className="flex items-center gap-2.5 group hover:text-secondary transition">
+                  <div className="p-1.5 bg-secondary/20 rounded-lg group-hover:bg-secondary/30 transition">
+                    <MessageCircle size={16} className="text-secondary" />
+                  </div>
+                  <span className="text-primary-foreground/90">Gửi tin nhắn</span>
+                </a>
                 <a href="tel:0826071111" className="flex items-center gap-2.5 group hover:text-secondary transition">
                   <div className="p-1.5 bg-secondary/20 rounded-lg group-hover:bg-secondary/30 transition">
                     <Phone size={16} className="text-secondary" />

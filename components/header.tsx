@@ -54,21 +54,21 @@ export default function Header() {
 
             {/* Desktop Navigation */}
             <nav className="hidden md:flex gap-8">
-              <a href="/" className="text-foreground hover:text-primary transition font-medium">
+              <Link href="/" className="text-foreground hover:text-primary transition font-medium">
                 Trang chủ
-              </a>
-              <a href="/about" className="text-foreground hover:text-primary transition font-medium">
+              </Link>
+              <Link href="/about" className="text-foreground hover:text-primary transition font-medium">
                 Về chúng tôi
-              </a>
-              <a href="/products" className="text-foreground hover:text-primary transition font-medium">
+              </Link>
+              <Link href="/products" className="text-foreground hover:text-primary transition font-medium">
                 Sản phẩm
-              </a>
-              <a href="/blog" className="text-foreground hover:text-primary transition font-medium">
+              </Link>
+              <Link href="/blog" className="text-foreground hover:text-primary transition font-medium">
                 Blog
-              </a>
-              <a href="#contact" className="text-foreground hover:text-primary transition font-medium">
+              </Link>
+              <Link href="/contact" className="text-foreground hover:text-primary transition font-medium">
                 Liên hệ
-              </a>
+              </Link>
             </nav>
 
             <div className="flex items-center gap-4">
@@ -94,41 +94,41 @@ export default function Header() {
           {isOpen && (
             <nav className="md:hidden pb-4 border-t border-border pt-4 bg-background/95 backdrop-blur-sm">
               <div className="space-y-1">
-                <a
+                <Link
                   href="/"
                   className="block px-4 py-3 text-foreground hover:bg-primary/10 hover:text-primary transition font-medium rounded-lg"
                   onClick={handleLinkClick}
                 >
                   Trang chủ
-                </a>
-                <a
+                </Link>
+                <Link
                   href="/about"
                   className="block px-4 py-3 text-foreground hover:bg-primary/10 hover:text-primary transition font-medium rounded-lg"
                   onClick={handleLinkClick}
                 >
                   Về chúng tôi
-                </a>
-                <a
+                </Link>
+                <Link
                   href="/products"
                   className="block px-4 py-3 text-foreground hover:bg-primary/10 hover:text-primary transition font-medium rounded-lg"
                   onClick={handleLinkClick}
                 >
                   Sản phẩm
-                </a>
-                <a
+                </Link>
+                <Link
                   href="/blog"
                   className="block px-4 py-3 text-foreground hover:bg-primary/10 hover:text-primary transition font-medium rounded-lg"
                   onClick={handleLinkClick}
                 >
                   Blog
-                </a>
-                <a
-                  href="#contact"
+                </Link>
+                <Link
+                  href="/contact"
                   className="block px-4 py-3 text-foreground hover:bg-primary/10 hover:text-primary transition font-medium rounded-lg"
                   onClick={handleLinkClick}
                 >
                   Liên hệ
-                </a>
+                </Link>
               </div>
             </nav>
           )}

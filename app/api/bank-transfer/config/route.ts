@@ -39,6 +39,8 @@ export async function GET(request: NextRequest) {
       } else if (data) {
         bankConfig = {
           bankName: data.bank_name,
+          bankId: data.bank_id || undefined,
+          acqId: data.acq_id || undefined,
           accountName: data.account_name,
           accountNumber: data.account_number,
           branch: data.branch,
@@ -53,7 +55,16 @@ export async function GET(request: NextRequest) {
 
     // If no config from DB, use defaults
     if (!bankConfig) {
-      bankConfig = getVietnameseBanks()[0]
+      const defaultBank = getVietnameseBanks()[0]
+      bankConfig = {
+        bankName: defaultBank.bankName,
+        bankId: defaultBank.bankId,
+        acqId: defaultBank.acqId,
+        accountName: defaultBank.accountName,
+        accountNumber: defaultBank.accountNumber,
+        branch: defaultBank.branch,
+        swiftCode: defaultBank.swiftCode,
+      }
     }
 
     return NextResponse.json({
@@ -64,10 +75,19 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error("[v0] Bank config endpoint error:", error)
     // Return defaults on error
+    const defaultBank = getVietnameseBanks()[0]
     return NextResponse.json({
       success: true,
       banks: getVietnameseBanks(),
-      bankConfig: getVietnameseBanks()[0],
+      bankConfig: {
+        bankName: defaultBank.bankName,
+        bankId: defaultBank.bankId,
+        acqId: defaultBank.acqId,
+        accountName: defaultBank.accountName,
+        accountNumber: defaultBank.accountNumber,
+        branch: defaultBank.branch,
+        swiftCode: defaultBank.swiftCode,
+      },
     })
   }
 }
@@ -75,7 +95,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { bankName, accountName, accountNumber, branch, swiftCode } = body
+    const { bankName, bankId, acqId, accountName, accountNumber, branch, swiftCode } = body
 
     // Validate required fields
     if (!bankName || !accountName || !accountNumber || !branch) {
@@ -96,6 +116,8 @@ export async function POST(request: NextRequest) {
 
     const updatedConfig: BankConfig = {
       bankName,
+      bankId: bankId || undefined,
+      acqId: acqId || undefined,
       accountName,
       accountNumber,
       branch,
@@ -111,6 +133,8 @@ export async function POST(request: NextRequest) {
         .upsert(
           {
             bank_name: bankName,
+            bank_id: bankId || null,
+            acq_id: acqId || null,
             account_name: accountName,
             account_number: accountNumber,
             branch,
@@ -131,6 +155,8 @@ export async function POST(request: NextRequest) {
       } else if (data) {
         savedConfig = {
           bankName: data.bank_name,
+          bankId: data.bank_id || undefined,
+          acqId: data.acq_id || undefined,
           accountName: data.account_name,
           accountNumber: data.account_number,
           branch: data.branch,

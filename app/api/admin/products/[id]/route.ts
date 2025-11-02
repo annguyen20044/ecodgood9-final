@@ -8,6 +8,10 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     const supabase = await createServerSupabaseClient()
     const body = await request.json()
 
+    // Hỗ trợ cả images (mảng) và image (string)
+    const images = body.images && Array.isArray(body.images) ? body.images : (body.image ? [body.image] : [])
+    const imageUrl = images.length > 0 ? images[0] : (body.image || "")
+
     const { data, error } = await supabase
       .from("products")
       .update({
@@ -15,7 +19,8 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
         description: body.description,
         price: body.price,
         category: body.category,
-        image_url: body.image || "",
+        image_url: imageUrl,
+        images: images.length > 0 ? JSON.stringify(images) : null, // Lưu dưới dạng JSON string
         stock: body.stock || 0,
         is_active: body.is_published !== undefined ? body.is_published : true,
         sku: body.sku,
@@ -31,13 +36,25 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     }
 
     // Transform response
+    let productImages: string[] = []
+    if (data.images && typeof data.images === 'string') {
+      try {
+        productImages = JSON.parse(data.images)
+      } catch {
+        productImages = []
+      }
+    } else if (Array.isArray(data.images)) {
+      productImages = data.images
+    }
+    
     const product = {
       id: data.id,
       name: data.name,
       description: data.description,
       price: parseFloat(data.price),
       category: data.category,
-      image: data.image_url || "",
+      image: productImages.length > 0 ? productImages[0] : (data.image_url || ""),
+      images: productImages.length > 0 ? productImages : (data.image_url ? [data.image_url] : []),
       stock: data.stock,
       is_published: data.is_active,
       sku: data.sku,

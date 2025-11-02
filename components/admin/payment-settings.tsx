@@ -4,52 +4,74 @@ import type React from "react"
 
 import { useState, useEffect } from "react"
 import { AlertCircle, CheckCircle, Loader } from "lucide-react"
-import { generateQRCode } from "@/lib/qr-code-generator"
-
-interface BankConfig {
-  bankName: string
-  accountName: string
-  accountNumber: string
-  branch: string
-  swiftCode?: string
-}
+import { generateVietQRCode } from "@/lib/qr-code-generator"
+import { getVietnameseBanks, getVietQRBankId } from "@/lib/bank-config-utils"
+import type { BankConfig } from "@/lib/bank-config-utils"
 
 export default function PaymentSettings() {
   const [bankConfig, setBankConfig] = useState<BankConfig>({
-    bankName: "Ngân hàng Vietcombank",
-    accountName: "EcoGood Coffee",
-    accountNumber: "1234567890",
-    branch: "Chi nhánh Hà Nội",
-    swiftCode: "BFTVVNVX",
+    bankName: "Ngân hàng MBBank",
+    bankId: "MB",
+    acqId: "970422",
+    accountName: "EcoGood",
+    accountNumber: "1088656788888",
+    branch: "Chi nhánh TP.HCM",
+    swiftCode: "",
   })
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState("")
   const [messageType, setMessageType] = useState<"success" | "error">("success")
   const [qrCode, setQrCode] = useState<string>("")
+  const banks = getVietnameseBanks()
 
   useEffect(() => {
     fetchBankConfig()
   }, [])
 
-  // Auto-generate QR code when bank config changes
+  // Auto-generate VietQR code when bank config changes
   useEffect(() => {
-    const generateQR = async () => {
-      if (bankConfig.accountNumber && bankConfig.accountName) {
-        const qrData = `${bankConfig.accountNumber}|${bankConfig.accountName}`
-        const qr = await generateQRCode(qrData)
+    if (bankConfig.accountNumber && bankConfig.accountName && bankConfig.bankId) {
+      // Tự động lấy bankId nếu chưa có
+      let bankId = bankConfig.bankId
+      if (!bankId && bankConfig.bankName) {
+        const bankInfo = getVietQRBankId(bankConfig.bankName)
+        if (bankInfo) {
+          bankId = bankInfo.bankId
+        }
+      }
+      
+      if (bankId) {
+        const qr = generateVietQRCode({
+          bankId,
+          accountNumber: bankConfig.accountNumber,
+          accountName: bankConfig.accountName,
+          template: "compact",
+        })
         setQrCode(qr)
       }
     }
-    generateQR()
-  }, [bankConfig.accountNumber, bankConfig.accountName, bankConfig.bankName])
+  }, [bankConfig.accountNumber, bankConfig.accountName, bankConfig.bankName, bankConfig.bankId])
 
   const fetchBankConfig = async () => {
     try {
       const response = await fetch("/api/bank-transfer/config")
       const data = await response.json()
       if (data.success && data.bankConfig) {
+        // Lấy bankId từ mapping nếu chưa có
+        let bankId = data.bankConfig.bankId
+        let acqId = data.bankConfig.acqId
+        if (!bankId && data.bankConfig.bankName) {
+          const bankInfo = getVietQRBankId(data.bankConfig.bankName)
+          if (bankInfo) {
+            bankId = bankInfo.bankId
+            acqId = bankInfo.acqId
+          }
+        }
+        
         setBankConfig({
           bankName: data.bankConfig.bankName,
+          bankId: bankId || "",
+          acqId: acqId || "",
           accountName: data.bankConfig.accountName,
           accountNumber: data.bankConfig.accountNumber,
           branch: data.bankConfig.branch,
@@ -61,12 +83,24 @@ export default function PaymentSettings() {
     }
   }
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target
-    setBankConfig((prev) => ({
-      ...prev,
-      [name]: value,
-    }))
+    
+    if (name === "bankName") {
+      // Tự động lấy bankId và acqId khi chọn ngân hàng
+      const bankInfo = getVietQRBankId(value)
+      setBankConfig((prev) => ({
+        ...prev,
+        bankName: value,
+        bankId: bankInfo?.bankId || "",
+        acqId: bankInfo?.acqId || "",
+      }))
+    } else {
+      setBankConfig((prev) => ({
+        ...prev,
+        [name]: value,
+      }))
+    }
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -86,8 +120,20 @@ export default function PaymentSettings() {
         setMessageType("success")
         setMessage("Cập nhật thông tin ngân hàng thành công!")
         if (data.bankConfig) {
+          let bankId = data.bankConfig.bankId
+          let acqId = data.bankConfig.acqId
+          if (!bankId && data.bankConfig.bankName) {
+            const bankInfo = getVietQRBankId(data.bankConfig.bankName)
+            if (bankInfo) {
+              bankId = bankInfo.bankId
+              acqId = bankInfo.acqId
+            }
+          }
+          
           setBankConfig({
             bankName: data.bankConfig.bankName,
+            bankId: bankId || "",
+            acqId: acqId || "",
             accountName: data.bankConfig.accountName,
             accountNumber: data.bankConfig.accountNumber,
             branch: data.bankConfig.branch,
@@ -119,14 +165,23 @@ export default function PaymentSettings() {
           <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-sm font-semibold text-foreground mb-2">Tên ngân hàng</label>
-            <input
-              type="text"
+            <select
               name="bankName"
               value={bankConfig.bankName}
               onChange={handleChange}
               className="w-full px-4 py-2 border border-secondary/20 rounded-lg focus:outline-none focus:border-primary"
-              placeholder="Nhập tên ngân hàng"
-            />
+            >
+              {banks.map((bank) => (
+                <option key={bank.id} value={bank.bankName}>
+                  {bank.bankName} {bank.bankId && `(${bank.bankId})`}
+                </option>
+              ))}
+            </select>
+            {bankConfig.bankId && (
+              <p className="text-xs text-foreground/60 mt-1">
+                Bank ID: {bankConfig.bankId} | BIN: {bankConfig.acqId}
+              </p>
+            )}
           </div>
 
           <div>

@@ -21,7 +21,24 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
       return NextResponse.json({ error: "Order not found" }, { status: 404 })
     }
 
-    return NextResponse.json({ success: true, data })
+    // Transform response to match frontend format
+    const order = {
+      id: data.id,
+      order_number: data.order_number,
+      customer_name: data.customer_name,
+      customer_email: data.customer_email,
+      customer_phone: data.customer_phone,
+      customer_address: data.customer_address,
+      totalAmount: parseFloat(data.total_amount || 0),
+      payment_method: data.payment_method,
+      payment_status: data.payment_status,
+      order_status: data.order_status,
+      notes: data.notes,
+      created_at: data.created_at,
+      items: data.order_items || [],
+    }
+
+    return NextResponse.json({ success: true, order })
   } catch (error) {
     console.error("[v0] Order fetch error:", error)
     return NextResponse.json({ error: "Failed to fetch order" }, { status: 500 })
