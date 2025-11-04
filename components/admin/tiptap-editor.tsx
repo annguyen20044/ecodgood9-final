@@ -1,5 +1,6 @@
 "use client"
 
+import { useEffect } from 'react'
 import { useEditor, EditorContent } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
 import Link from '@tiptap/extension-link'
@@ -23,7 +24,7 @@ import { Button } from '@/components/ui/button'
 interface TiptapEditorProps {
   content: string
   onChange: (html: string) => void
-  onImageUpload: () => void
+  onImageUpload: (insertImage: (url: string) => void) => void
 }
 
 export default function TiptapEditor({ content, onChange, onImageUpload }: TiptapEditorProps) {
@@ -61,14 +62,40 @@ export default function TiptapEditor({ content, onChange, onImageUpload }: Tipta
     },
   })
 
+  // Sync content when prop changes (e.g., when editing existing post)
+  useEffect(() => {
+    if (editor && content !== editor.getHTML()) {
+      const { from, to } = editor.state.selection
+      editor.commands.setContent(content)
+      // Restore selection position
+      editor.commands.setTextSelection({ from, to })
+    }
+  }, [content, editor])
+
   if (!editor) {
     return null
   }
 
   const addLink = () => {
-    const url = window.prompt('Nhập URL:')
+    const previousUrl = editor.getAttributes('link').href
+    const url = window.prompt('Nhập URL:', previousUrl || '')
+    
+    if (url === null) {
+      return
+    }
+
+    if (url === '') {
+      editor.chain().focus().extendMarkRange('link').unsetLink().run()
+      return
+    }
+
+    editor.chain().focus().extendMarkRange('link').setLink({ href: url }).run()
+  }
+
+  const addImage = () => {
+    const url = window.prompt('Nhập URL ảnh:')
     if (url) {
-      editor.chain().focus().setLink({ href: url }).run()
+      editor.chain().focus().setImage({ src: url }).run()
     }
   }
 
@@ -80,7 +107,11 @@ export default function TiptapEditor({ content, onChange, onImageUpload }: Tipta
           type="button"
           variant="ghost"
           size="sm"
-          onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
+          onClick={(e) => {
+            e.preventDefault()
+            editor.chain().focus().toggleHeading({ level: 1 }).run()
+          }}
+          disabled={!editor.can().toggleHeading({ level: 1 })}
           className={editor.isActive('heading', { level: 1 }) ? 'bg-gray-200' : ''}
         >
           <Heading1 className="h-4 w-4" />
@@ -89,7 +120,11 @@ export default function TiptapEditor({ content, onChange, onImageUpload }: Tipta
           type="button"
           variant="ghost"
           size="sm"
-          onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
+          onClick={(e) => {
+            e.preventDefault()
+            editor.chain().focus().toggleHeading({ level: 2 }).run()
+          }}
+          disabled={!editor.can().chain().focus().toggleHeading({ level: 2 }).run()}
           className={editor.isActive('heading', { level: 2 }) ? 'bg-gray-200' : ''}
         >
           <Heading2 className="h-4 w-4" />
@@ -98,7 +133,11 @@ export default function TiptapEditor({ content, onChange, onImageUpload }: Tipta
           type="button"
           variant="ghost"
           size="sm"
-          onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
+          onClick={(e) => {
+            e.preventDefault()
+            editor.chain().focus().toggleHeading({ level: 3 }).run()
+          }}
+          disabled={!editor.can().chain().focus().toggleHeading({ level: 3 }).run()}
           className={editor.isActive('heading', { level: 3 }) ? 'bg-gray-200' : ''}
         >
           <Heading3 className="h-4 w-4" />
@@ -108,7 +147,11 @@ export default function TiptapEditor({ content, onChange, onImageUpload }: Tipta
           type="button"
           variant="ghost"
           size="sm"
-          onClick={() => editor.chain().focus().toggleBold().run()}
+          onClick={(e) => {
+            e.preventDefault()
+            editor.chain().focus().toggleBold().run()
+          }}
+          disabled={!editor.can().toggleBold()}
           className={editor.isActive('bold') ? 'bg-gray-200' : ''}
         >
           <Bold className="h-4 w-4" />
@@ -117,7 +160,11 @@ export default function TiptapEditor({ content, onChange, onImageUpload }: Tipta
           type="button"
           variant="ghost"
           size="sm"
-          onClick={() => editor.chain().focus().toggleItalic().run()}
+          onClick={(e) => {
+            e.preventDefault()
+            editor.chain().focus().toggleItalic().run()
+          }}
+          disabled={!editor.can().toggleItalic()}
           className={editor.isActive('italic') ? 'bg-gray-200' : ''}
         >
           <Italic className="h-4 w-4" />
@@ -127,7 +174,11 @@ export default function TiptapEditor({ content, onChange, onImageUpload }: Tipta
           type="button"
           variant="ghost"
           size="sm"
-          onClick={() => editor.chain().focus().toggleBulletList().run()}
+          onClick={(e) => {
+            e.preventDefault()
+            editor.chain().focus().toggleBulletList().run()
+          }}
+          disabled={!editor.can().toggleBulletList()}
           className={editor.isActive('bulletList') ? 'bg-gray-200' : ''}
         >
           <List className="h-4 w-4" />
@@ -136,7 +187,11 @@ export default function TiptapEditor({ content, onChange, onImageUpload }: Tipta
           type="button"
           variant="ghost"
           size="sm"
-          onClick={() => editor.chain().focus().toggleOrderedList().run()}
+          onClick={(e) => {
+            e.preventDefault()
+            editor.chain().focus().toggleOrderedList().run()
+          }}
+          disabled={!editor.can().toggleOrderedList()}
           className={editor.isActive('orderedList') ? 'bg-gray-200' : ''}
         >
           <ListOrdered className="h-4 w-4" />
@@ -145,7 +200,11 @@ export default function TiptapEditor({ content, onChange, onImageUpload }: Tipta
           type="button"
           variant="ghost"
           size="sm"
-          onClick={() => editor.chain().focus().toggleBlockquote().run()}
+          onClick={(e) => {
+            e.preventDefault()
+            editor.chain().focus().toggleBlockquote().run()
+          }}
+          disabled={!editor.can().toggleBlockquote()}
           className={editor.isActive('blockquote') ? 'bg-gray-200' : ''}
         >
           <Quote className="h-4 w-4" />
@@ -155,7 +214,11 @@ export default function TiptapEditor({ content, onChange, onImageUpload }: Tipta
           type="button"
           variant="ghost"
           size="sm"
-          onClick={addLink}
+          onClick={(e) => {
+            e.preventDefault()
+            addLink()
+          }}
+          disabled={!editor.can().setLink({ href: '' })}
           className={editor.isActive('link') ? 'bg-gray-200' : ''}
         >
           <Link2 className="h-4 w-4" />
@@ -164,7 +227,12 @@ export default function TiptapEditor({ content, onChange, onImageUpload }: Tipta
           type="button"
           variant="ghost"
           size="sm"
-          onClick={onImageUpload}
+          onClick={(e) => {
+            e.preventDefault()
+            onImageUpload((url: string) => {
+              editor.chain().focus().setImage({ src: url }).run()
+            })
+          }}
         >
           <ImageIcon className="h-4 w-4" />
         </Button>
@@ -172,7 +240,11 @@ export default function TiptapEditor({ content, onChange, onImageUpload }: Tipta
           type="button"
           variant="ghost"
           size="sm"
-          onClick={() => editor.chain().focus().toggleCodeBlock().run()}
+          onClick={(e) => {
+            e.preventDefault()
+            editor.chain().focus().toggleCodeBlock().run()
+          }}
+          disabled={!editor.can().toggleCodeBlock()}
           className={editor.isActive('codeBlock') ? 'bg-gray-200' : ''}
         >
           <Code className="h-4 w-4" />

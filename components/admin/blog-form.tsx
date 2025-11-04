@@ -323,7 +323,7 @@ export default function BlogForm({ editingId, onClose }: BlogFormProps) {
           <TiptapEditor
             content={formData.content}
             onChange={(html) => setFormData({ ...formData, content: html })}
-            onImageUpload={async () => {
+            onImageUpload={async (insertImage) => {
               const input = document.createElement('input')
               input.type = 'file'
               input.accept = 'image/*'
@@ -334,11 +334,8 @@ export default function BlogForm({ editingId, onClose }: BlogFormProps) {
                   const result = await uploadToImgbb(file)
                   setUploading(false)
                   if (result.success && result.url) {
-                    // Insert image at the end of content
-                    setFormData({
-                      ...formData,
-                      content: formData.content + `<img src="${result.url}" alt="Uploaded image" />`
-                    })
+                    // Insert image directly into editor
+                    insertImage(result.url)
                   } else {
                     alert('Lỗi upload ảnh: ' + (result.error || 'Unknown error'))
                   }
